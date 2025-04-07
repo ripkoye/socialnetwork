@@ -95,3 +95,99 @@ To learn more about React Native, take a look at the following resources:
 - [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
 - [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
 - [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+
+# Indoor Positioning MVP (React Native)
+
+This app scans for nearby BLE devices and displays RSSI + sensor data (accelerometer). Built using React Native CLI with TypeScript.
+
+---
+
+## 🚀 Getting Started (from bootup)
+
+### 1. Clone the repo
+```bash
+git clone https://github.com/yourusername/your-repo-name.git
+cd your-repo-name
+```
+
+### 2. Install dependencies
+```bash
+npm install
+```
+
+### 3. Install iOS native modules (CocoaPods)
+```bash
+cd ios
+pod install
+cd ..
+```
+
+### 4. Start the Metro bundler
+```bash
+npx react-native start
+```
+
+### 5. In a separate terminal, run the app on iOS
+```bash
+npx react-native run-ios
+```
+
+> ⚠️ If you want to scan real BLE devices or read sensor data (like accelerometer), run the app on a **real iOS device** — the iOS Simulator does **not support Bluetooth or sensors**.
+
+---
+
+## 📦 BLE + Sensor Libraries Used
+
+- [`react-native-ble-plx`](https://github.com/dotintent/react-native-ble-plx) – BLE scanning
+- [`react-native-sensors`](https://github.com/react-native-sensors/react-native-sensors) – Accelerometer
+
+---
+
+## 📱 Permissions (iOS)
+
+In `ios/YourAppName/Info.plist`, make sure these are set:
+
+```xml
+<key>NSBluetoothAlwaysUsageDescription</key>
+<string>Bluetooth is used to scan nearby devices.</string>
+<key>NSBluetoothPeripheralUsageDescription</key>
+<string>Needed for BLE.</string>
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>Used to access BLE device locations.</string>
+```
+
+---
+
+## 🧠 Common Dev Commands
+
+```bash
+# Check git status
+git status
+
+# Stage & commit changes
+git add .
+git commit -m "Commit message"
+git push
+```
+
+---
+
+## 📄 File Structure (MVP)
+```
+/src
+  └── screens/
+        └── SensorScreen.tsx   # BLE + RSSI display
+App.tsx                        # Entry point
+ios/                           # iOS native code
+```
+
+---
+
+## ✅ Ready to Scan?
+
+Just run:
+```bash
+npx react-native run-ios --device
+```
+
+And you're scanning BLE devices + accelerometer from the jump.
