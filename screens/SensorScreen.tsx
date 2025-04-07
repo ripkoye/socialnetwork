@@ -2,12 +2,41 @@ import React, {useEffect,  useState} from 'react';
 import {View, Text, StyleSheet, Button, PermissionsAndroid, Platform, FlatList} from 'react-native';
 import { accelerometer } from 'react-native-sensors';
 import { BleManager, Device } from 'react-native-ble-plx';
+import { gyroscope } from 'react-native-sensors';
+import { magnetometer } from 'react-native-sensors';
+import { useIMU } from '../useIMU';
+import { isEmulator } from 'react-native-device-info';
+import DeviceIsPhysical from 'react-native-device-info';
 
 const Manager = new BleManager();
 
 export default function SensorScreen() {
     const [devices, setDevices] = useState<Device[]>([]);
-    const [accelerometerData, setAccelerometerData] = useState({x: 0, y: 0, z: 0});
+    //const [accelerometerData, setAccelerometerData] = useState({x: 0, y: 0, z: 0});
+
+    const [accelerometer, setAccelerometer] = useState({ x: 0, y: 0, z: 0 });
+    const [gyroscope, setGyroscope] = useState({ x: 0, y: 0, z: 0 });
+    const [magnetometer, setMagnetometer] = useState({ x: 0, y: 0, z: 0 });
+    useEffect(() => {
+      // Check if running on an emulator
+      const initializeSensors = async () => {
+          const isRunningOnEmulator = await DeviceIsPhysical.isEmulator();
+          if (isRunningOnEmulator) {
+              console.log("Running on an emulator. Initializing default sensor data.");
+              setAccelerometer({ x: 0, y: 0, z: 0 });
+              setGyroscope({ x: 0, y: 0, z: 0 });
+              setMagnetometer({ x: 0, y: 0, z: 0 });
+          } else {
+              console.log("Running on a physical device. Initializing real sensor data.");
+              const { accelerometer, gyroscope, magnetometer } = useIMU(200);
+              setAccelerometer(accelerometer);
+              setGyroscope(gyroscope);
+              setMagnetometer(magnetometer);
+          }
+      };
+
+      initializeSensors();
+  }, []);
 
     useEffect(() => {
         if (Platform.OS === 'android') {
@@ -61,9 +90,16 @@ export default function SensorScreen() {
       />
 
       <Text style={styles.title}>Accelerometer</Text>
-      <Text style={styles.sensorText}>
-        x: {accelerometerData.x.toFixed(2)} y: {accelerometerData.y.toFixed(2)} z: {accelerometerData.z.toFixed(2)}
-      </Text>
+      <View style={{ padding: 20 }}>
+      <Text style={{ fontWeight: 'bold' }}>Accelerometer</Text>
+      <Text>x: {accelerometer.x.toFixed(2)} y: {accelerometer.y.toFixed(2)} z: {accelerometer.z.toFixed(2)}</Text>
+
+      <Text style={{ fontWeight: 'bold' }}>Gyroscope</Text>
+      <Text>x: {gyroscope.x.toFixed(2)} y: {gyroscope.y.toFixed(2)} z: {gyroscope.z.toFixed(2)}</Text>
+
+      <Text style={{ fontWeight: 'bold' }}>Magnetometer</Text>
+      <Text>x: {magnetometer.x.toFixed(2)} y: {magnetometer.y.toFixed(2)} z: {magnetometer.z.toFixed(2)}</Text>
+    </View>
     </View>
   );
 }
