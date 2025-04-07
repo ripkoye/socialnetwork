@@ -24,8 +24,7 @@ async function getWifiSignalStrength() {
         return null;
       }
   }else{
-    const rssi = 'N/A';
-    return rssi;
+    return null;
   }
   try {
     const rssi = await WifiManager.getCurrentSignalStrength();
