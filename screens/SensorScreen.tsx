@@ -1,14 +1,41 @@
 import React, {useEffect,  useState} from 'react';
 import {View, Text, StyleSheet, Button, PermissionsAndroid, Platform, FlatList} from 'react-native';
-import { accelerometer } from 'react-native-sensors';
 import { BleManager, Device } from 'react-native-ble-plx';
-import { gyroscope } from 'react-native-sensors';
-import { magnetometer } from 'react-native-sensors';
 import { useIMU } from '../useIMU';
 import { isEmulator } from 'react-native-device-info';
 import DeviceIsPhysical from 'react-native-device-info';
+import WifiManager from 'react-native-wifi-reborn';
 
 const Manager = new BleManager();
+
+async function getWifiSignalStrength() {
+  if(Platform.OS === 'android'){
+    const granted = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+      {
+        title: 'Location Permission Required',
+        message: 'This app needs location permission to access WiFi signal strength.',
+        buttonNeutral: 'Ask Me Later',
+        buttonNegative: 'Cancel',
+        buttonPositive: 'OK',
+      },);
+      if(granted === PermissionsAndroid.RESULTS.GRANTED) {
+        console.log('Location permission granted');
+        return null;
+      }
+  }else{
+    const rssi = 'N/A';
+    return rssi;
+  }
+  try {
+    const rssi = await WifiManager.getCurrentSignalStrength();
+    console.log('WiFi Signal Strength:', rssi);
+    return rssi;
+  } catch (error) {
+    console.error('Error getting WiFi signal strength:', error);
+    return null;
+  }
+}
 
 export default function SensorScreen() {
     const [devices, setDevices] = useState<Device[]>([]);
@@ -17,6 +44,8 @@ export default function SensorScreen() {
     const [accelerometer, setAccelerometer] = useState({ x: 0, y: 0, z: 0 });
     const [gyroscope, setGyroscope] = useState({ x: 0, y: 0, z: 0 });
     const [magnetometer, setMagnetometer] = useState({ x: 0, y: 0, z: 0 });
+    const [rssi, setRssi] = useState<number | null>(null);
+
     useEffect(() => {
       // Check if running on an emulator
       const initializeSensors = async () => {
@@ -36,6 +65,14 @@ export default function SensorScreen() {
       };
 
       initializeSensors();
+  }, []);
+
+  useEffect( () => {
+    const fetchRSSI = async () => {
+      const rssi = await getWifiSignalStrength();
+      setRssi(rssi);
+    };
+    fetchRSSI();
   }, []);
 
     useEffect(() => {
@@ -89,7 +126,7 @@ export default function SensorScreen() {
         )}
       />
 
-      <Text style={styles.title}>Accelerometer</Text>
+      <Text style={{ padding: 20}}>Wifi RSSI: {rssi}</Text>
       <View style={{ padding: 20 }}>
       <Text style={{ fontWeight: 'bold' }}>Accelerometer</Text>
       <Text>x: {accelerometer.x.toFixed(2)} y: {accelerometer.y.toFixed(2)} z: {accelerometer.z.toFixed(2)}</Text>
