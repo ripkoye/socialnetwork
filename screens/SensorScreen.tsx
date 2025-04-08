@@ -5,6 +5,7 @@ import { useIMU } from '../useIMU';
 import { isEmulator } from 'react-native-device-info';
 import DeviceIsPhysical from 'react-native-device-info';
 import WifiManager from 'react-native-wifi-reborn';
+import { useRef } from 'react';
 
 const Manager = new BleManager();
 
@@ -45,6 +46,49 @@ export default function SensorScreen() {
     const [magnetometer, setMagnetometer] = useState({ x: 0, y: 0, z: 0 });
     const [rssi, setRssi] = useState<number | null>(null);
 
+    const socketRef = useRef<WebSocket | null>(null);
+
+    useEffect(() => {
+      const socket = new WebSocket('ws://localhost:8765');
+      socketRef.current = socket;
+    
+      socket.onopen = () => {
+        console.log('WebSocket connected');
+    
+        const interval = setInterval(() => {
+          const payload = {
+            timestamp: Date.now(),
+            wifiRssi: rssi,
+            accelerometer,
+            gyroscope,
+            magnetometer,
+            bleDevices: devices.map(d => ({
+              id: d.id,
+              name: d.name,
+              rssi: d.rssi
+            })),
+          };
+    
+          socket.send(JSON.stringify(payload));
+          console.log('Sent sensor payload');
+        }, 1000); // every 1 second
+    
+        // cleanup on unmount
+        return () => {
+          clearInterval(interval);
+          socket.close();
+          console.log('WebSocket closed');
+        };
+      };
+    
+      socket.onerror = (e) => {
+        console.error('WebSocket error:', e.message);
+      };
+    
+      socket.onclose = () => {
+        console.log('WebSocket disconnected');
+      };
+    }, [rssi, accelerometer, gyroscope, magnetometer, devices]);
     useEffect(() => {
       // Check if running on an emulator
       const initializeSensors = async () => {
